@@ -1,0 +1,50 @@
+docker run -it --rm --cap-add=NET_ADMIN --device=/dev/net/tun:/dev/net/tun alpine:latest
+
+apk add wireguard-go ip6tables tcpdump
+
+# from linuxserver.io wireguard: https://hub.docker.com/r/linuxserver/wireguard
+    bc \
+    coredns \
+    grep \
+    iproute2 \
+    iptables \
+    ip6tables \
+    iputils \
+    kmod \
+    libcap-utils \
+    libqrencode-tools \
+    net-tools \
+    nftables \
+    openresolv \
+    wireguard-tools
+
+#sed -i 's|\[\[ $proto == -4 \]\] && cmd sysctl -q net\.ipv4\.conf\.all\.src_valid_mark=1|[[ $proto == -4 ]] \&\& [[ $(sysctl -n net.ipv4.conf.all.src_valid_mark) != 1 ]] \&\& cmd sysctl -q net.ipv4.conf.all.src_valid_mark=1|' /usr/bin/wg-quick
+sed -i 's|\[\[ $proto == -4 \]\] && cmd sysctl -q net\.ipv4\.conf\.all\.src_valid_mark=1|# [[ $proto == -4 ]] \&\& [[ $(sysctl -n net.ipv4.conf.all.src_valid_mark) != 1 ]] \&\& cmd sysctl -q net.ipv4.conf.all.src_valid_mark=1|' /usr/bin/wg-quick
+
+
+mkdir /etc/wireguard/
+
+cat > /etc/wireguard/wg0.conf
+chmod go-rw /etc/wireguard/wg0.conf
+
+wg-quick up wg0
+
+ip r show table all | grep table
+
+# table 51820 == 0xca6c
+ip rule show
+
+# https://ro-che.info/articles/2021-02-27-linux-routing
+# https://www.wireguard.com/xplatform/
+
+# This is the usermode solution
+wireguard-go
+wireguard-go wg0
+# comment out DNS = and Address =
+# and MTU Table PreUp PostUp PreDown PostDown SaveConfig
+wg setconf wg0 /etc/wireguard/wg0.conf
+# now set up routes
+ip link set wg0 up
+ip r add 8.8.8.8/32 dev wg0
+ip a add 10.65.14.40/32 dev wg0
+# https://man7.org/linux/man-pages/man8/wg-quick.8.html
