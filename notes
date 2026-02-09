@@ -51,3 +51,6 @@ ip a add 10.65.14.40/32 dev wg0
 
 
 # https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/mullvad.md
+
+# random select wg server config (not in container)
+# https://github.com/ArcherN9/Wireguard-Interface-randomizer/blob/master/mullvad.sh
