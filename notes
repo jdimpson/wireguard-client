@@ -29,6 +29,9 @@ chmod go-rw /etc/wireguard/wg0.conf
 
 wg-quick up wg0
 
+but this reports "could not detect a useable init system" if I don't install all the apps 
+like in the linuxserver.io implementation
+
 ip r show table all | grep table
 
 # table 51820 == 0xca6c
@@ -43,10 +46,16 @@ wireguard-go wg0
 # comment out DNS = and Address =
 # and MTU Table PreUp PostUp PreDown PostDown SaveConfig
 wg setconf wg0 /etc/wireguard/wg0.conf
+
+or 
+
+wg setconf wg0 <(wg-quick strip wg0)
 # now set up routes
 ip link set wg0 up
 ip r add 8.8.8.8/32 dev wg0
-ip a add 10.65.14.40/32 dev wg0
+ip a add 10.65.14.40/32 dev wg0 # from Address= line of the config
+ip r add 0.0.0.0/1 dev wg0
+ip r add 128.0.0.0/1 dev wg0
 # https://man7.org/linux/man-pages/man8/wg-quick.8.html
 
 
